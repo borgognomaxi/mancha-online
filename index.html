@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>La Mancha Online</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  /* ==========================================================
+     DISEÑO: un patio de recreo visto desde arriba
+     ========================================================== */
+  :root {
+    --piso: #e9d8b4;
+    --tinta: #2b2118;
+    --mancha: #e63946;
+    --panel: rgba(43, 33, 24, 0.82);
+    --claro: #fff8ec;
+    --titulos: "Lilita One", "Arial Rounded MT Bold", sans-serif;
+    --cuerpo: "Atkinson Hyperlegible", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #3b2f25; font-family: var(--cuerpo); color: var(--claro); }
+  canvas { display: block; touch-action: none; }
+
+  /* Pantalla de inicio */
+  #inicio {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 35%, #f4a261, #9c4a1a 70%); padding: 16px;
+  }
+  .tarjeta { max-width: 380px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+  .tarjeta h1 { font-family: var(--titulos); font-weight: 400; font-size: clamp(2.6rem, 11vw, 3.6rem); margin: 0; line-height: 1; text-shadow: 0 4px 0 rgba(0,0,0,.25); }
+  .tarjeta p { margin: 0; line-height: 1.5; }
+  .tarjeta input, .tarjeta button {
+    font: inherit; font-size: 1.1rem; padding: 14px 18px; border-radius: 14px; border: 0;
+  }
+  .tarjeta input { background: var(--claro); color: var(--tinta); text-align: center; }
+  .tarjeta button { background: var(--tinta); color: var(--claro); font-family: var(--titulos); font-size: 1.3rem; cursor: pointer; }
+  .tarjeta button:focus-visible, .tarjeta input:focus-visible { outline: 3px solid var(--claro); outline-offset: 2px; }
+  .chico { font-size: .85rem; opacity: .85; }
+  #error-inicio { min-height: 1.4em; font-weight: 700; }
+
+  /* Lo que se ve arriba del mapa mientras jugás */
+  .hud { position: fixed; pointer-events: none; }
+  #quien { top: 12px; left: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; font-weight: 700; max-width: 60vw; }
+  #quien.yo { background: var(--mancha); }
+  #tabla { top: 12px; right: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; font-size: .85rem; min-width: 170px; }
+  #tabla h2 { font-family: var(--titulos); font-weight: 400; font-size: 1rem; margin: 0 0 6px; }
+  #tabla ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 3px; }
+  #tabla li span { float: right; margin-left: 12px; font-variant-numeric: tabular-nums; opacity: .85; }
+  #avisos { bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  #avisos div { background: var(--panel); padding: 6px 12px; border-radius: 999px; font-size: .9rem; animation: aparecer .3s; white-space: nowrap; }
+  @keyframes aparecer { from { opacity: 0; transform: translateY(8px); } }
+  @media (max-width: 600px) { #tabla { display: none; } }
+
+  /* LA PANTALLA NEGRA */
+  #negro {
+    position: fixed; inset: 0; background: #000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px; z-index: 10;
+  }
+  #negro strong { font-family: var(--titulos); font-weight: 400; color: var(--mancha); font-size: clamp(3rem, 14vw, 7rem); letter-spacing: .02em; text-align: center; animation: latido .5s infinite alternate; }
+  #negro span { font-size: 1.1rem; opacity: .85; }
+  @keyframes latido { to { transform: scale(1.06); } }
+  @media (prefers-reduced-motion: reduce) { #negro strong, #avisos div { animation: none; } }
+
+  #silbar {
+    position: fixed; left: 12px; bottom: 16px; z-index: 3;
+    font-family: var(--titulos); font-size: 1.15rem; color: var(--tinta);
+    background: #ffd166; border: 0; border-radius: 999px; padding: 14px 20px;
+    box-shadow: 0 4px 0 #b8860b; cursor: pointer; touch-action: manipulation;
+  }
+  #silbar:disabled { background: #c9b98f; box-shadow: none; cursor: default; }
+  #silbar:focus-visible { outline: 3px solid var(--claro); outline-offset: 2px; }
+  #avisos { bottom: 80px; }
+
+  #desconectado { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; z-index: 11; text-align: center; padding: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ==========================================================
+     ESTRUCTURA (HTML)
+     ========================================================== -->
+<div id="inicio">
+  <form class="tarjeta" id="form-inicio">
+    <h1>La Mancha</h1>
+    <p>Hasta 10 jugadores. Si la mancha te toca, la tenés vos.</p>
+    <input id="nombre" maxlength="14" placeholder="Tu nombre" autocomplete="off" required>
+    <button type="submit">Entrar al patio</button>
+    <p id="error-inicio"></p>
+    <p class="chico">Compu: flechas o W A S D para moverte, ESPACIO para silbar · Celu: mantené el dedo apretado hacia donde querés ir</p>
+    <p class="chico">La mancha ve poco. Silbale para burlarte… pero ojo, que te escucha.</p>
+  </form>
+</div>
+
+<canvas id="lienzo"></canvas>
+
+<div class="hud" id="quien" hidden></div>
+<div class="hud" id="tabla" hidden><h2>Tiempo siendo la mancha</h2><ol id="lista"></ol></div>
+<div class="hud" id="avisos"></div>
+
+<div id="negro" hidden>
+  <strong>SOS LA MANCHA</strong>
+  <span id="cuenta">Arrancás en 2…</span>
+  <span>Ahora ves poco. Escuchá los silbidos 👂</span>
+</div>
+
+<button id="silbar" hidden>🎵 Silbar</button>
+
+<div id="desconectado" hidden>Se cortó la conexión. Reconectando…</div>
+
+<!-- Esta librería la manda nuestro propio servidor: es la que nos conecta en tiempo real -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ==========================================================
+// EL JUEGO EN EL NAVEGADOR
+// Esta parte NO decide nada importante: solo dibuja lo que le
+// manda el servidor y le avisa hacia dónde querés moverte.
+// ==========================================================
+
+// ----------------------------------------------------------
+// 1. CONEXIÓN CON EL SERVIDOR
+// ----------------------------------------------------------
+const socket = io();   // se conecta solo al servidor que mandó esta página
+
+let miId = null;
+let mapa = null, obstaculos = [], radio = 22;
+let estado = { jugadores: [], manchaId: null };
+const dibujados = {};  // posiciones "suavizadas" que mostramos en pantalla
+let miNombre = "";
+
+// ----------------------------------------------------------
+// 2. PANTALLA DE INICIO
+// ----------------------------------------------------------
+document.getElementById("form-inicio").addEventListener("submit", e => {
+  e.preventDefault();
+  miNombre = document.getElementById("nombre").value.trim();
+  if (!miNombre) return;
+  prepararSonido();  // los navegadores solo dejan hacer sonidos después de que tocás algo
+  socket.emit("entrar", miNombre);
+});
+
+socket.on("lleno", max => {
+  document.getElementById("error-inicio").textContent = `El patio está lleno (${max} jugadores). Probá en un rato.`;
+});
+
+socket.on("bienvenida", datos => {
+  miId = datos.id;
+  mapa = datos.mapa;
+  obstaculos = datos.obstaculos;
+  radio = datos.radio;
+  document.getElementById("inicio").hidden = true;
+  document.getElementById("quien").hidden = false;
+  document.getElementById("tabla").hidden = false;
+});
+
+// Si se corta internet y vuelve, entramos de nuevo con el mismo nombre
+socket.on("disconnect", () => { if (miId) document.getElementById("desconectado").hidden = false; });
+socket.on("connect", () => {
+  document.getElementById("desconectado").hidden = true;
+  if (miId && miNombre) { miId = null; socket.emit("entrar", miNombre); }
+});
+
+// ----------------------------------------------------------
+// 3. LO QUE NOS MANDA EL SERVIDOR
+// ----------------------------------------------------------
+
+// 30 veces por segundo llega la "foto" del juego
+socket.on("estado", nuevo => {
+  estado = nuevo;
+  // Si alguien desapareció de nuestra vista (porque somos la mancha y se alejó),
+  // lo olvidamos, así cuando vuelve a aparecer no "se desliza" desde donde estaba
+  const presentes = new Set(estado.jugadores.map(j => j.id));
+  for (const id in dibujados) if (!presentes.has(id)) delete dibujados[id];
+  actualizarHud();
+});
+
+// ----------------------------------------------------------
+// SILBIDOS
+// ----------------------------------------------------------
+const ondas = [];   // ondas de silbidos que se están dibujando
+
+socket.on("silbido", s => {
+  ondas.push({ x: s.x, y: s.y, nombre: s.nombre, inicio: performance.now() });
+  // El volumen depende de qué tan lejos sonó: lejos se escucha bajito
+  const yo = estado.jugadores.find(j => j.id === miId);
+  const distancia = yo ? Math.hypot(s.x - yo.x, s.y - yo.y) : 0;
+  sonarSilbido(Math.max(0.08, 1 - distancia / 1400));
+});
+
+function pedirSilbido() {
+  if (!miId || estado.manchaId === miId) return;
+  socket.emit("silbar");
+}
+document.getElementById("silbar").addEventListener("click", pedirSilbido);
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && miId) { e.preventDefault(); pedirSilbido(); }
+});
+
+// El sonido del silbido lo "fabricamos" con la Web Audio API:
+// un tono agudo que sube y baja, como un silbido de verdad
+let audio = null;
+function prepararSonido() {
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
+}
+function sonarSilbido(volumen) {
+  if (!audio) return;
+  const t = audio.currentTime;
+  const oscilador = audio.createOscillator();
+  const ganancia = audio.createGain();
+  oscilador.type = "sine";
+  oscilador.frequency.setValueAtTime(1500, t);
+  oscilador.frequency.linearRampToValueAtTime(2300, t + 0.15);
+  oscilador.frequency.linearRampToValueAtTime(1700, t + 0.45);
+  ganancia.gain.setValueAtTime(0, t);
+  ganancia.gain.linearRampToValueAtTime(0.25 * volumen, t + 0.03);
+  ganancia.gain.linearRampToValueAtTime(0, t + 0.5);
+  oscilador.connect(ganancia).connect(audio.destination);
+  oscilador.start(t);
+  oscilador.stop(t + 0.55);
+}
+
+// ¡Te atraparon! Pantalla negra
+socket.on("sosLaMancha", ({ segundos }) => {
+  const negro = document.getElementById("negro");
+  const cuenta = document.getElementById("cuenta");
+  negro.hidden = false;
+  let quedan = segundos;
+  cuenta.textContent = `Arrancás en ${quedan}…`;
+  const reloj = setInterval(() => {
+    quedan--;
+    if (quedan <= 0) { clearInterval(reloj); negro.hidden = true; }
+    else cuenta.textContent = `Arrancás en ${quedan}…`;
+  }, 1000);
+  if (navigator.vibrate) navigator.vibrate(300);
+});
+
+// Mensajitos abajo ("Juan atrapó a Sofi")
+socket.on("aviso", texto => {
+  const caja = document.getElementById("avisos");
+  const div = document.createElement("div");
+  div.textContent = texto;
+  caja.appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+  while (caja.children.length > 3) caja.firstChild.remove();
+});
+
+function actualizarHud() {
+  const mancha = estado.jugadores.find(j => j.id === estado.manchaId);
+  const quien = document.getElementById("quien");
+  const soyYo = estado.manchaId === miId;
+  quien.classList.toggle("yo", soyYo);
+  quien.textContent = soyYo ? "¡Sos la mancha! Atrapá a alguien"
+    : mancha ? `La mancha es ${mancha.nombre} · ¡Escapá!` : "Esperando jugadores…";
+
+  // Botón de silbar: solo para los que escapan, y apagado mientras espera
+  const boton = document.getElementById("silbar");
+  const yo = estado.jugadores.find(j => j.id === miId);
+  boton.hidden = soyYo || !yo;
+  boton.disabled = !yo || !yo.puedeSilbar;
+
+  // Tabla: ordenada de menos a más tiempo siendo la mancha (menos es mejor)
+  const ordenados = [...(estado.tabla || estado.jugadores)].sort((a, b) => a.segundosMancha - b.segundosMancha);
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+  ordenados.forEach(j => {
+    const li = document.createElement("li");
+    li.textContent = j.nombre + (j.id === miId ? " (vos)" : "");
+    const s = document.createElement("span");
+    s.textContent = j.segundosMancha + "s";
+    li.appendChild(s);
+    lista.appendChild(li);
+  });
+}
+
+// ----------------------------------------------------------
+// 4. CONTROLES: le avisamos al servidor hacia dónde queremos ir
+// ----------------------------------------------------------
+const teclas = {};
+let direccionTactil = null;
+let ultimaEnviada = "";
+
+document.addEventListener("keydown", e => { teclas[e.key.toLowerCase()] = true; });
+document.addEventListener("keyup", e => { teclas[e.key.toLowerCase()] = false; });
+window.addEventListener("blur", () => { for (const k in teclas) teclas[k] = false; });
+
+const lienzo = document.getElementById("lienzo");
+function tocar(e) {
+  // Dirección = desde el centro de la pantalla (donde estás vos) hacia el dedo
+  const dx = e.clientX - lienzo.width / 2 / devicePixelRatio;
+  const dy = e.clientY - lienzo.height / 2 / devicePixelRatio;
+  const largo = Math.hypot(dx, dy);
+  direccionTactil = largo < 15 ? { x: 0, y: 0 } : { x: dx / largo, y: dy / largo };
+}
+lienzo.addEventListener("pointerdown", e => { lienzo.setPointerCapture(e.pointerId); tocar(e); });
+lienzo.addEventListener("pointermove", e => { if (direccionTactil) tocar(e); });
+lienzo.addEventListener("pointerup", () => { direccionTactil = null; });
+lienzo.addEventListener("pointercancel", () => { direccionTactil = null; });
+
+function leerDireccion() {
+  if (direccionTactil) return direccionTactil;
+  let x = 0, y = 0;
+  if (teclas["arrowleft"] || teclas["a"]) x -= 1;
+  if (teclas["arrowright"] || teclas["d"]) x += 1;
+  if (teclas["arrowup"] || teclas["w"]) y -= 1;
+  if (teclas["arrowdown"] || teclas["s"]) y += 1;
+  return { x, y };
+}
+
+// Solo mandamos un mensaje cuando la dirección CAMBIA (así no saturamos la conexión)
+setInterval(() => {
+  if (!miId) return;
+  const d = leerDireccion();
+  const texto = d.x.toFixed(2) + "," + d.y.toFixed(2);
+  if (texto !== ultimaEnviada) {
+    socket.emit("mover", d);
+    ultimaEnviada = texto;
+  }
+}, 50);
+
+// ----------------------------------------------------------
+// 5. DIBUJAR: unas 60 veces por segundo
+// ----------------------------------------------------------
+const pincel = lienzo.getContext("2d");
+
+function ajustarTamanio() {
+  lienzo.width = innerWidth * devicePixelRatio;
+  lienzo.height = innerHeight * devicePixelRatio;
+  lienzo.style.width = innerWidth + "px";
+  lienzo.style.height = innerHeight + "px";
+}
+addEventListener("resize", ajustarTamanio);
+ajustarTamanio();
+
+const ESTILO_OBSTACULO = {
+  banco:   { relleno: "#8d5a3b", borde: "#5e3a24" },
+  fuente:  { relleno: "#7fb7d6", borde: "#3d6f8c" },
+  cantero: { relleno: "#6a994e", borde: "#386641" },
+  tobogan: { relleno: "#e76f51", borde: "#9c3d24" },
+  hamacas: { relleno: "#f4a261", borde: "#a8662b" }
+};
+const NOMBRE_OBSTACULO = { banco: "banco", fuente: "fuente", cantero: "cantero", tobogan: "tobogán", hamacas: "hamacas" };
+
+function dibujar() {
+  requestAnimationFrame(dibujar);
+  const ancho = innerWidth, alto = innerHeight;
+  pincel.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  pincel.fillStyle = "#3b2f25";
+  pincel.fillRect(0, 0, ancho, alto);
+  if (!mapa) return;
+
+  // Suavizado: en vez de "saltar" a la posición nueva, nos acercamos de a poco.
+  // Así el movimiento se ve fluido aunque lleguen solo 30 fotos por segundo.
+  for (const j of estado.jugadores) {
+    const d = dibujados[j.id] || (dibujados[j.id] = { x: j.x, y: j.y });
+    d.x += (j.x - d.x) * 0.3;
+    d.y += (j.y - d.y) * 0.3;
+  }
+
+  // Cámara: seguimos a nuestro jugador para que siempre esté en el centro
+  const yo = dibujados[miId] || { x: mapa.ancho / 2, y: mapa.alto / 2 };
+  const camX = ancho / 2 - yo.x, camY = alto / 2 - yo.y;
+  pincel.save();
+  pincel.translate(camX, camY);
+
+  // Piso de baldosas
+  pincel.fillStyle = "#e9d8b4";
+  pincel.fillRect(0, 0, mapa.ancho, mapa.alto);
+  pincel.strokeStyle = "rgba(120, 90, 50, 0.18)";
+  pincel.lineWidth = 2;
+  for (let x = 0; x <= mapa.ancho; x += 60) { pincel.beginPath(); pincel.moveTo(x, 0); pincel.lineTo(x, mapa.alto); pincel.stroke(); }
+  for (let y = 0; y <= mapa.alto; y += 60) { pincel.beginPath(); pincel.moveTo(0, y); pincel.lineTo(mapa.ancho, y); pincel.stroke(); }
+
+  // Rayuela pintada en el piso (puro detalle)
+  pincel.strokeStyle = "rgba(255,255,255,.7)"; pincel.lineWidth = 4;
+  [[400, 560], [460, 560], [430, 620], [430, 680]].forEach(([x, y]) => pincel.strokeRect(x, y, 50, 50));
+
+  // Paredes del patio
+  pincel.strokeStyle = "#5e3a24"; pincel.lineWidth = 12;
+  pincel.strokeRect(-6, -6, mapa.ancho + 12, mapa.alto + 12);
+
+  // Obstáculos
+  for (const o of obstaculos) {
+    const e = ESTILO_OBSTACULO[o.tipo] || ESTILO_OBSTACULO.banco;
+    pincel.fillStyle = "rgba(0,0,0,.15)";
+    pincel.fillRect(o.x + 6, o.y + 8, o.w, o.h);  // sombrita
+    pincel.fillStyle = e.relleno; pincel.strokeStyle = e.borde; pincel.lineWidth = 4;
+    pincel.beginPath(); pincel.roundRect(o.x, o.y, o.w, o.h, 12); pincel.fill(); pincel.stroke();
+    pincel.fillStyle = "rgba(255,255,255,.85)";
+    pincel.font = "700 14px 'Atkinson Hyperlegible', sans-serif";
+    pincel.textAlign = "center"; pincel.textBaseline = "middle";
+    pincel.fillText(NOMBRE_OBSTACULO[o.tipo] || "", o.x + o.w / 2, o.y + o.h / 2);
+  }
+
+  // Jugadores
+  const tiempo = performance.now() / 1000;
+  for (const j of estado.jugadores) {
+    const d = dibujados[j.id];
+    const esMancha = j.id === estado.manchaId;
+    pincel.globalAlpha = j.inmune ? 0.5 : 1;
+
+    if (esMancha) {
+      // Aro rojo que late alrededor de la mancha
+      pincel.strokeStyle = "#e63946";
+      pincel.lineWidth = 5;
+      pincel.beginPath(); pincel.arc(d.x, d.y, radio + 8 + Math.sin(tiempo * 8) * 3, 0, Math.PI * 2); pincel.stroke();
+    }
+    pincel.fillStyle = j.color;
+    pincel.strokeStyle = j.id === miId ? "#ffffff" : "#2b2118";
+    pincel.lineWidth = j.id === miId ? 5 : 3;
+    pincel.beginPath(); pincel.arc(d.x, d.y, radio, 0, Math.PI * 2); pincel.fill(); pincel.stroke();
+
+    // Ojitos que miran hacia donde se mueve
+    pincel.fillStyle = "#2b2118";
+    pincel.beginPath(); pincel.arc(d.x - 7, d.y - 4, 3.5, 0, Math.PI * 2); pincel.arc(d.x + 7, d.y - 4, 3.5, 0, Math.PI * 2); pincel.fill();
+
+    // Nombre arriba
+    pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
+    pincel.textAlign = "center"; pincel.textBaseline = "bottom";
+    pincel.lineWidth = 4; pincel.strokeStyle = "rgba(255,255,255,.9)";
+    const etiqueta = esMancha ? "🔥 " + j.nombre : j.nombre;
+    pincel.strokeText(etiqueta, d.x, d.y - radio - 10);
+    pincel.fillStyle = esMancha ? "#c1121f" : "#2b2118";
+    pincel.fillText(etiqueta, d.x, d.y - radio - 10);
+    pincel.globalAlpha = 1;
+  }
+  pincel.restore();
+
+  // OSCURIDAD: si soy la mancha, tapo todo menos un círculo alrededor mío
+  if (estado.manchaId === miId) {
+    const r = estado.vision || 260;
+    const sombra = pincel.createRadialGradient(ancho / 2, alto / 2, r * 0.6, ancho / 2, alto / 2, r);
+    sombra.addColorStop(0, "rgba(10, 6, 3, 0)");
+    sombra.addColorStop(1, "rgba(10, 6, 3, 0.96)");
+    pincel.fillStyle = sombra;
+    pincel.fillRect(0, 0, ancho, alto);
+  }
+
+  // ONDAS DE SILBIDO: se dibujan arriba de la oscuridad, así la mancha las ve igual
+  const ahoraMs = performance.now();
+  for (let i = ondas.length - 1; i >= 0; i--) {
+    const onda = ondas[i];
+    const edad = (ahoraMs - onda.inicio) / 1500;   // dura 1,5 segundos
+    if (edad >= 1) { ondas.splice(i, 1); continue; }
+    const sx = onda.x + camX, sy = onda.y + camY;
+    pincel.globalAlpha = 1 - edad;
+    pincel.strokeStyle = "#ffd166";
+    pincel.lineWidth = 4;
+    for (let k = 0; k < 3; k++) {
+      const rr = 20 + ((edad * 120 + k * 40) % 120);
+      pincel.beginPath(); pincel.arc(sx, sy, rr, 0, Math.PI * 2); pincel.stroke();
+    }
+    pincel.fillStyle = "#ffd166";
+    pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
+    pincel.textAlign = "center"; pincel.textBaseline = "bottom";
+    pincel.fillText("🎵 " + onda.nombre, sx, sy - 50);
+    pincel.globalAlpha = 1;
+  }
+
+  dibujarMinimapa(ancho, alto);
+}
+
+// Mapita en la esquina para ver dónde está cada uno
+function dibujarMinimapa(ancho, alto) {
+  const escala = Math.min(180, ancho * 0.3) / mapa.ancho;
+  const w = mapa.ancho * escala, h = mapa.alto * escala;
+  const x0 = ancho - w - 12, y0 = alto - h - 12;
+  pincel.fillStyle = "rgba(43,33,24,.75)";
+  pincel.beginPath(); pincel.roundRect(x0 - 4, y0 - 4, w + 8, h + 8, 8); pincel.fill();
+  pincel.fillStyle = "#e9d8b4"; pincel.fillRect(x0, y0, w, h);
+  pincel.fillStyle = "#a98b63";
+  for (const o of obstaculos) pincel.fillRect(x0 + o.x * escala, y0 + o.y * escala, o.w * escala, o.h * escala);
+  for (const j of estado.jugadores) {
+    const d = dibujados[j.id];
+    pincel.fillStyle = j.id === estado.manchaId ? "#e63946" : j.id === miId ? "#ffffff" : j.color;
+    pincel.beginPath(); pincel.arc(x0 + d.x * escala, y0 + d.y * escala, j.id === estado.manchaId ? 5 : 3.5, 0, Math.PI * 2); pincel.fill();
+  }
+}
+
+// Borramos de la memoria a los jugadores que se fueron
+setInterval(() => {
+  const ids = new Set(estado.jugadores.map(j => j.id));
+  for (const id in dibujados) if (!ids.has(id)) delete dibujados[id];
+}, 2000);
+
+dibujar();
+</script>
+</body>
+</html>
