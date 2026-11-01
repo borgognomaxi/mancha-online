@@ -19,6 +19,9 @@
     --cuerpo: "Atkinson Hyperlegible", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
+  /* Todo lo que tenga el atributo "hidden" se esconde SÍ O SÍ,
+     aunque otra regla de CSS le diga que se muestre */
+  [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #3b2f25; font-family: var(--cuerpo); color: var(--claro); }
   canvas { display: block; touch-action: none; }
 
@@ -106,7 +109,13 @@
 
 <button id="silbar" hidden>🎵 Silbar</button>
 
-<div id="desconectado" hidden>Se cortó la conexión. Reconectando…</div>
+<div id="desconectado" hidden>
+  <div style="display:flex;flex-direction:column;gap:14px;align-items:center;max-width:340px">
+    <strong style="font-family:var(--titulos);font-weight:400;font-size:1.8rem">Se cortó la conexión</strong>
+    <span>El servidor se puede estar despertando. Puede tardar hasta un minuto. La página se va a recargar sola.</span>
+    <button type="button" id="recargar" style="font:inherit;font-weight:700;padding:12px 20px;border:0;border-radius:12px;background:#ffd166;color:#2b2118;cursor:pointer">Recargar ahora</button>
+  </div>
+</div>
 
 <!-- Esta librería la manda nuestro propio servidor: es la que nos conecta en tiempo real -->
 <script src="/socket.io/socket.io.js"></script>
@@ -154,8 +163,22 @@ socket.on("bienvenida", datos => {
 });
 
 // Si se corta internet y vuelve, entramos de nuevo con el mismo nombre
-socket.on("disconnect", () => { if (miId) document.getElementById("desconectado").hidden = false; });
+let relojRecarga = null;
+socket.on("disconnect", () => {
+  if (!miId) return;
+  document.getElementById("desconectado").hidden = false;
+  // Si en 20 segundos no volvió la conexión, recargamos la página entera:
+  // eso "despierta" al servidor de Render mejor que seguir reintentando
+  clearTimeout(relojRecarga);
+  relojRecarga = setTimeout(() => location.reload(), 20000);
+});
+document.getElementById("recargar").addEventListener("click", () => location.reload());
+
+// Mientras jugás, cada 4 minutos visitamos /ping para que Render no apague el servidor
+setInterval(() => { if (miId) fetch("/ping").catch(() => {}); }, 4 * 60 * 1000);
+
 socket.on("connect", () => {
+  clearTimeout(relojRecarga);
   document.getElementById("desconectado").hidden = true;
   if (miId && miNombre) { miId = null; socket.emit("entrar", miNombre); }
 });
