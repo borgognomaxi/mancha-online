@@ -18,6 +18,10 @@ const io = new Server(servidorWeb);
 // Cuando alguien entra al link, le mandamos los archivos de la carpeta "public"
 app.use(express.static(path.join(__dirname, "public")));
 
+// Una dirección para "golpear la puerta": el juego la visita cada tanto
+// para que Render no apague el servidor mientras alguien está jugando
+app.get("/ping", (req, res) => res.send("ok"));
+
 // ----------------------------------------------------------
 // 1. REGLAS DEL JUEGO (cambiá estos números para probar)
 // ----------------------------------------------------------
