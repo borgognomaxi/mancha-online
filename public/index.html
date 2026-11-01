@@ -7,14 +7,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
   /* ==========================================================
-     DISEÑO: un patio de recreo visto desde arriba
+     DISEÑO: un patio de escuela visto desde arriba
      ========================================================== */
   :root {
-    --piso: #e9d8b4;
     --tinta: #2b2118;
     --mancha: #e63946;
     --panel: rgba(43, 33, 24, 0.82);
     --claro: #fff8ec;
+    --amarillo: #ffd166;
     --titulos: "Lilita One", "Arial Rounded MT Bold", sans-serif;
     --cuerpo: "Atkinson Hyperlegible", system-ui, sans-serif;
   }
@@ -22,60 +22,60 @@
   /* Todo lo que tenga el atributo "hidden" se esconde SÍ O SÍ,
      aunque otra regla de CSS le diga que se muestre */
   [hidden] { display: none !important; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #3b2f25; font-family: var(--cuerpo); color: var(--claro); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #2f2a1f; font-family: var(--cuerpo); color: var(--claro); }
   canvas { display: block; touch-action: none; }
 
   /* Pantalla de inicio */
   #inicio {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5;
     background: radial-gradient(circle at 50% 35%, #f4a261, #9c4a1a 70%); padding: 16px;
   }
-  .tarjeta { max-width: 380px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+  .tarjeta { max-width: 400px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 14px; }
   .tarjeta h1 { font-family: var(--titulos); font-weight: 400; font-size: clamp(2.6rem, 11vw, 3.6rem); margin: 0; line-height: 1; text-shadow: 0 4px 0 rgba(0,0,0,.25); }
   .tarjeta p { margin: 0; line-height: 1.5; }
-  .tarjeta input, .tarjeta button {
-    font: inherit; font-size: 1.1rem; padding: 14px 18px; border-radius: 14px; border: 0;
-  }
+  .tarjeta input, .tarjeta button { font: inherit; font-size: 1.1rem; padding: 14px 18px; border-radius: 14px; border: 0; }
   .tarjeta input { background: var(--claro); color: var(--tinta); text-align: center; }
   .tarjeta button { background: var(--tinta); color: var(--claro); font-family: var(--titulos); font-size: 1.3rem; cursor: pointer; }
   .tarjeta button:focus-visible, .tarjeta input:focus-visible { outline: 3px solid var(--claro); outline-offset: 2px; }
-  .chico { font-size: .85rem; opacity: .85; }
+  .reglas { text-align: left; font-size: .9rem; line-height: 1.5; background: rgba(43,33,24,.35); border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 4px; }
   #error-inicio { min-height: 1.4em; font-weight: 700; }
 
   /* Lo que se ve arriba del mapa mientras jugás */
-  .hud { position: fixed; pointer-events: none; }
-  #quien { top: 12px; left: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; font-weight: 700; max-width: 60vw; }
+  .hud { position: fixed; pointer-events: none; z-index: 2; }
+  #quien { top: 12px; left: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; font-weight: 700; max-width: 60vw; display: flex; flex-direction: column; gap: 4px; }
   #quien.yo { background: var(--mancha); }
+  #quien small { font-weight: 400; opacity: .9; }
   #tabla { top: 12px; right: 12px; background: var(--panel); padding: 10px 14px; border-radius: 12px; font-size: .85rem; min-width: 170px; }
   #tabla h2 { font-family: var(--titulos); font-weight: 400; font-size: 1rem; margin: 0 0 6px; }
   #tabla ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 3px; }
   #tabla li span { float: right; margin-left: 12px; font-variant-numeric: tabular-nums; opacity: .85; }
-  #avisos { bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  #avisos { bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; }
   #avisos div { background: var(--panel); padding: 6px 12px; border-radius: 999px; font-size: .9rem; animation: aparecer .3s; white-space: nowrap; }
   @keyframes aparecer { from { opacity: 0; transform: translateY(8px); } }
   @media (max-width: 600px) { #tabla { display: none; } }
 
-  /* LA PANTALLA NEGRA */
-  #negro {
-    position: fixed; inset: 0; background: #000; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 12px; z-index: 10;
+  /* Botón de acción: Silbar (si escapás) o Revisar (si sos la mancha) */
+  #accion {
+    position: fixed; left: 12px; bottom: 16px; z-index: 3;
+    font-family: var(--titulos); font-size: 1.15rem; color: var(--tinta);
+    background: var(--amarillo); border: 0; border-radius: 999px; padding: 14px 20px;
+    box-shadow: 0 4px 0 #b8860b; cursor: pointer; touch-action: manipulation;
   }
-  #negro strong { font-family: var(--titulos); font-weight: 400; color: var(--mancha); font-size: clamp(3rem, 14vw, 7rem); letter-spacing: .02em; text-align: center; animation: latido .5s infinite alternate; }
+  #accion.revisar { background: #9bd0ff; box-shadow: 0 4px 0 #3d6f8c; }
+  #accion:disabled { background: #c9b98f; box-shadow: none; cursor: default; opacity: .8; }
+  #accion:focus-visible { outline: 3px solid var(--claro); outline-offset: 2px; }
+
+  /* LA PANTALLA NEGRA */
+  #negro { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 10; padding: 16px; text-align: center; }
+  #negro strong { font-family: var(--titulos); font-weight: 400; color: var(--mancha); font-size: clamp(3rem, 14vw, 7rem); line-height: 1; animation: latido .5s infinite alternate; }
   #negro span { font-size: 1.1rem; opacity: .85; }
   @keyframes latido { to { transform: scale(1.06); } }
   @media (prefers-reduced-motion: reduce) { #negro strong, #avisos div { animation: none; } }
 
-  #silbar {
-    position: fixed; left: 12px; bottom: 16px; z-index: 3;
-    font-family: var(--titulos); font-size: 1.15rem; color: var(--tinta);
-    background: #ffd166; border: 0; border-radius: 999px; padding: 14px 20px;
-    box-shadow: 0 4px 0 #b8860b; cursor: pointer; touch-action: manipulation;
-  }
-  #silbar:disabled { background: #c9b98f; box-shadow: none; cursor: default; }
-  #silbar:focus-visible { outline: 3px solid var(--claro); outline-offset: 2px; }
-  #avisos { bottom: 80px; }
-
-  #desconectado { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; z-index: 11; text-align: center; padding: 16px; }
+  #desconectado { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; z-index: 11; text-align: center; padding: 16px; }
+  #desconectado .caja { display: flex; flex-direction: column; gap: 14px; align-items: center; max-width: 340px; }
+  #desconectado strong { font-family: var(--titulos); font-weight: 400; font-size: 1.8rem; }
+  #desconectado button { font: inherit; font-weight: 700; padding: 12px 20px; border: 0; border-radius: 12px; background: var(--amarillo); color: var(--tinta); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -86,12 +86,17 @@
 <div id="inicio">
   <form class="tarjeta" id="form-inicio">
     <h1>La Mancha</h1>
-    <p>Hasta 10 jugadores. Si la mancha te toca, la tenés vos.</p>
+    <p>Hasta 10 jugadores en el patio de la escuela.</p>
+    <div class="reglas">
+      <span>🏃 Si la mancha te toca, la tenés vos.</span>
+      <span>🌿 Escondete en arbustos, la casita, el túnel o el pasto alto: la mancha no te ve.</span>
+      <span>🔦 La mancha puede revisar un escondite si está cerca.</span>
+      <span>🎵 Silbale para burlarte… pero ojo, que te escucha.</span>
+    </div>
     <input id="nombre" maxlength="14" placeholder="Tu nombre" autocomplete="off" required>
     <button type="submit">Entrar al patio</button>
     <p id="error-inicio"></p>
-    <p class="chico">Compu: flechas o W A S D para moverte, ESPACIO para silbar · Celu: mantené el dedo apretado hacia donde querés ir</p>
-    <p class="chico">La mancha ve poco. Silbale para burlarte… pero ojo, que te escucha.</p>
+    <p style="font-size:.85rem;opacity:.85">Compu: flechas o W A S D · ESPACIO = silbar o revisar<br>Celu: mantené el dedo hacia donde querés ir</p>
   </form>
 </div>
 
@@ -100,20 +105,19 @@
 <div class="hud" id="quien" hidden></div>
 <div class="hud" id="tabla" hidden><h2>Tiempo siendo la mancha</h2><ol id="lista"></ol></div>
 <div class="hud" id="avisos"></div>
+<button id="accion" hidden>🎵 Silbar</button>
 
 <div id="negro" hidden>
   <strong>SOS LA MANCHA</strong>
   <span id="cuenta">Arrancás en 2…</span>
-  <span>Ahora ves poco. Escuchá los silbidos 👂</span>
+  <span>Ves poco y no ves a los escondidos. Escuchá los silbidos y revisá los escondites 🔦</span>
 </div>
 
-<button id="silbar" hidden>🎵 Silbar</button>
-
 <div id="desconectado" hidden>
-  <div style="display:flex;flex-direction:column;gap:14px;align-items:center;max-width:340px">
-    <strong style="font-family:var(--titulos);font-weight:400;font-size:1.8rem">Se cortó la conexión</strong>
+  <div class="caja">
+    <strong>Se cortó la conexión</strong>
     <span>El servidor se puede estar despertando. Puede tardar hasta un minuto. La página se va a recargar sola.</span>
-    <button type="button" id="recargar" style="font:inherit;font-weight:700;padding:12px 20px;border:0;border-radius:12px;background:#ffd166;color:#2b2118;cursor:pointer">Recargar ahora</button>
+    <button type="button" id="recargar">Recargar ahora</button>
   </div>
 </div>
 
@@ -123,19 +127,18 @@
 // ==========================================================
 // EL JUEGO EN EL NAVEGADOR
 // Esta parte NO decide nada importante: solo dibuja lo que le
-// manda el servidor y le avisa hacia dónde querés moverte.
+// manda el servidor y le avisa qué querés hacer.
 // ==========================================================
 
 // ----------------------------------------------------------
 // 1. CONEXIÓN CON EL SERVIDOR
 // ----------------------------------------------------------
-const socket = io();   // se conecta solo al servidor que mandó esta página
-
-let miId = null;
-let mapa = null, obstaculos = [], radio = 22;
-let estado = { jugadores: [], manchaId: null };
-const dibujados = {};  // posiciones "suavizadas" que mostramos en pantalla
-let miNombre = "";
+const socket = io();
+let miId = null, miNombre = "";
+let mapa = null, obstaculos = [], escondites = [], radio = 22, distanciaRevisar = 110;
+let estado = { jugadores: [], tabla: [], manchaId: null, revelados: [] };
+const dibujados = {};   // posiciones "suavizadas" que mostramos en pantalla
+const detalles = {};    // dibujitos precalculados (hojas, pastos) de cada escondite
 
 // ----------------------------------------------------------
 // 2. PANTALLA DE INICIO
@@ -156,13 +159,17 @@ socket.on("bienvenida", datos => {
   miId = datos.id;
   mapa = datos.mapa;
   obstaculos = datos.obstaculos;
+  escondites = datos.escondites;
   radio = datos.radio;
+  distanciaRevisar = datos.distanciaRevisar;
+  prepararDetalles();
   document.getElementById("inicio").hidden = true;
   document.getElementById("quien").hidden = false;
   document.getElementById("tabla").hidden = false;
+  document.getElementById("accion").hidden = false;
 });
 
-// Si se corta internet y vuelve, entramos de nuevo con el mismo nombre
+// Si se corta y vuelve, entramos de nuevo con el mismo nombre
 let relojRecarga = null;
 socket.on("disconnect", () => {
   if (!miId) return;
@@ -186,63 +193,15 @@ socket.on("connect", () => {
 // ----------------------------------------------------------
 // 3. LO QUE NOS MANDA EL SERVIDOR
 // ----------------------------------------------------------
-
-// 30 veces por segundo llega la "foto" del juego
 socket.on("estado", nuevo => {
   estado = nuevo;
-  // Si alguien desapareció de nuestra vista (porque somos la mancha y se alejó),
-  // lo olvidamos, así cuando vuelve a aparecer no "se desliza" desde donde estaba
+  // Si alguien desapareció de nuestra vista, lo olvidamos,
+  // así cuando vuelve a aparecer no "se desliza" desde donde estaba
   const presentes = new Set(estado.jugadores.map(j => j.id));
   for (const id in dibujados) if (!presentes.has(id)) delete dibujados[id];
   actualizarHud();
 });
 
-// ----------------------------------------------------------
-// SILBIDOS
-// ----------------------------------------------------------
-const ondas = [];   // ondas de silbidos que se están dibujando
-
-socket.on("silbido", s => {
-  ondas.push({ x: s.x, y: s.y, nombre: s.nombre, inicio: performance.now() });
-  // El volumen depende de qué tan lejos sonó: lejos se escucha bajito
-  const yo = estado.jugadores.find(j => j.id === miId);
-  const distancia = yo ? Math.hypot(s.x - yo.x, s.y - yo.y) : 0;
-  sonarSilbido(Math.max(0.08, 1 - distancia / 1400));
-});
-
-function pedirSilbido() {
-  if (!miId || estado.manchaId === miId) return;
-  socket.emit("silbar");
-}
-document.getElementById("silbar").addEventListener("click", pedirSilbido);
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" && miId) { e.preventDefault(); pedirSilbido(); }
-});
-
-// El sonido del silbido lo "fabricamos" con la Web Audio API:
-// un tono agudo que sube y baja, como un silbido de verdad
-let audio = null;
-function prepararSonido() {
-  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
-}
-function sonarSilbido(volumen) {
-  if (!audio) return;
-  const t = audio.currentTime;
-  const oscilador = audio.createOscillator();
-  const ganancia = audio.createGain();
-  oscilador.type = "sine";
-  oscilador.frequency.setValueAtTime(1500, t);
-  oscilador.frequency.linearRampToValueAtTime(2300, t + 0.15);
-  oscilador.frequency.linearRampToValueAtTime(1700, t + 0.45);
-  ganancia.gain.setValueAtTime(0, t);
-  ganancia.gain.linearRampToValueAtTime(0.25 * volumen, t + 0.03);
-  ganancia.gain.linearRampToValueAtTime(0, t + 0.5);
-  oscilador.connect(ganancia).connect(audio.destination);
-  oscilador.start(t);
-  oscilador.stop(t + 0.55);
-}
-
-// ¡Te atraparon! Pantalla negra
 socket.on("sosLaMancha", ({ segundos }) => {
   const negro = document.getElementById("negro");
   const cuenta = document.getElementById("cuenta");
@@ -257,7 +216,6 @@ socket.on("sosLaMancha", ({ segundos }) => {
   if (navigator.vibrate) navigator.vibrate(300);
 });
 
-// Mensajitos abajo ("Juan atrapó a Sofi")
 socket.on("aviso", texto => {
   const caja = document.getElementById("avisos");
   const div = document.createElement("div");
@@ -267,25 +225,55 @@ socket.on("aviso", texto => {
   while (caja.children.length > 3) caja.firstChild.remove();
 });
 
-function actualizarHud() {
-  const mancha = estado.jugadores.find(j => j.id === estado.manchaId);
-  const quien = document.getElementById("quien");
-  const soyYo = estado.manchaId === miId;
-  quien.classList.toggle("yo", soyYo);
-  quien.textContent = soyYo ? "¡Sos la mancha! Atrapá a alguien"
-    : mancha ? `La mancha es ${mancha.nombre} · ¡Escapá!` : "Esperando jugadores…";
-
-  // Botón de silbar: solo para los que escapan, y apagado mientras espera
-  const boton = document.getElementById("silbar");
+// Silbidos: una onda en el mapa y un sonido
+const ondas = [];
+socket.on("silbido", s => {
+  ondas.push({ x: s.x, y: s.y, nombre: s.nombre, inicio: performance.now() });
   const yo = estado.jugadores.find(j => j.id === miId);
-  boton.hidden = soyYo || !yo;
-  boton.disabled = !yo || !yo.puedeSilbar;
+  const distancia = yo ? Math.hypot(s.x - yo.x, s.y - yo.y) : 0;
+  sonarSilbido(Math.max(0.08, 1 - distancia / 1800));
+});
+
+// Revisión: un destello de linterna sobre el escondite
+const linternas = [];
+socket.on("revision", r => {
+  linternas.push({ escondite: r.escondite, inicio: performance.now(), dura: r.hasta });
+  sonarLinterna();
+});
+
+function actualizarHud() {
+  const mancha = estado.tabla.find(j => j.id === estado.manchaId);
+  const yo = estado.jugadores.find(j => j.id === miId);
+  const soyYo = estado.manchaId === miId;
+  const quien = document.getElementById("quien");
+  quien.classList.toggle("yo", soyYo);
+  quien.innerHTML = "";
+  const linea1 = document.createElement("span");
+  linea1.textContent = soyYo ? "¡Sos la mancha! Atrapá a alguien"
+    : mancha ? `La mancha es ${mancha.nombre} · ¡Escapá!` : "Esperando jugadores…";
+  quien.appendChild(linea1);
+  if (yo && yo.escondite && !soyYo) {
+    const linea2 = document.createElement("small");
+    linea2.textContent = estado.revelados.includes(yo.escondite) ? "🔦 ¡Te están revisando! Rajá" : "🌿 Estás escondido";
+    quien.appendChild(linea2);
+  }
+
+  // Botón de acción
+  const boton = document.getElementById("accion");
+  boton.classList.toggle("revisar", soyYo);
+  if (soyYo) {
+    const segundos = Math.ceil((estado.esperaRevisar || 0) / 1000);
+    boton.textContent = segundos > 0 ? `🔦 Revisar (${segundos})` : "🔦 Revisar";
+    boton.disabled = !estado.puedeRevisar;
+  } else {
+    boton.textContent = "🎵 Silbar";
+    boton.disabled = !yo || !yo.puedeSilbar;
+  }
 
   // Tabla: ordenada de menos a más tiempo siendo la mancha (menos es mejor)
-  const ordenados = [...(estado.tabla || estado.jugadores)].sort((a, b) => a.segundosMancha - b.segundosMancha);
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
-  ordenados.forEach(j => {
+  [...estado.tabla].sort((a, b) => a.segundosMancha - b.segundosMancha).forEach(j => {
     const li = document.createElement("li");
     li.textContent = j.nombre + (j.id === miId ? " (vos)" : "");
     const s = document.createElement("span");
@@ -296,21 +284,27 @@ function actualizarHud() {
 }
 
 // ----------------------------------------------------------
-// 4. CONTROLES: le avisamos al servidor hacia dónde queremos ir
+// 4. CONTROLES
 // ----------------------------------------------------------
 const teclas = {};
-let direccionTactil = null;
-let ultimaEnviada = "";
+let direccionTactil = null, ultimaEnviada = "";
 
-document.addEventListener("keydown", e => { teclas[e.key.toLowerCase()] = true; });
+function accion() {
+  if (!miId) return;
+  if (estado.manchaId === miId) socket.emit("revisar");
+  else socket.emit("silbar");
+}
+document.getElementById("accion").addEventListener("click", accion);
+document.addEventListener("keydown", e => {
+  teclas[e.key.toLowerCase()] = true;
+  if (e.code === "Space" && miId) { e.preventDefault(); accion(); }
+});
 document.addEventListener("keyup", e => { teclas[e.key.toLowerCase()] = false; });
 window.addEventListener("blur", () => { for (const k in teclas) teclas[k] = false; });
 
 const lienzo = document.getElementById("lienzo");
 function tocar(e) {
-  // Dirección = desde el centro de la pantalla (donde estás vos) hacia el dedo
-  const dx = e.clientX - lienzo.width / 2 / devicePixelRatio;
-  const dy = e.clientY - lienzo.height / 2 / devicePixelRatio;
+  const dx = e.clientX - innerWidth / 2, dy = e.clientY - innerHeight / 2;
   const largo = Math.hypot(dx, dy);
   direccionTactil = largo < 15 ? { x: 0, y: 0 } : { x: dx / largo, y: dy / largo };
 }
@@ -334,17 +328,36 @@ setInterval(() => {
   if (!miId) return;
   const d = leerDireccion();
   const texto = d.x.toFixed(2) + "," + d.y.toFixed(2);
-  if (texto !== ultimaEnviada) {
-    socket.emit("mover", d);
-    ultimaEnviada = texto;
-  }
+  if (texto !== ultimaEnviada) { socket.emit("mover", d); ultimaEnviada = texto; }
 }, 50);
 
 // ----------------------------------------------------------
-// 5. DIBUJAR: unas 60 veces por segundo
+// 5. SONIDOS (los "fabricamos" con la Web Audio API)
+// ----------------------------------------------------------
+let audio = null;
+function prepararSonido() {
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
+}
+function tono(frecuencias, duracion, volumen, tipo = "sine") {
+  if (!audio) return;
+  const t = audio.currentTime;
+  const osc = audio.createOscillator(), gan = audio.createGain();
+  osc.type = tipo;
+  frecuencias.forEach(([f, cuando], i) => i === 0 ? osc.frequency.setValueAtTime(f, t) : osc.frequency.linearRampToValueAtTime(f, t + cuando));
+  gan.gain.setValueAtTime(0, t);
+  gan.gain.linearRampToValueAtTime(volumen, t + 0.03);
+  gan.gain.linearRampToValueAtTime(0, t + duracion);
+  osc.connect(gan).connect(audio.destination);
+  osc.start(t); osc.stop(t + duracion + 0.05);
+}
+const sonarSilbido = v => tono([[1500, 0], [2300, 0.15], [1700, 0.45]], 0.5, 0.25 * v);
+const sonarLinterna = () => tono([[300, 0], [180, 0.15]], 0.2, 0.12, "square");
+
+// ----------------------------------------------------------
+// 6. DIBUJAR EL PATIO
+// Cada tipo de objeto tiene su propia función de dibujo.
 // ----------------------------------------------------------
 const pincel = lienzo.getContext("2d");
-
 function ajustarTamanio() {
   lienzo.width = innerWidth * devicePixelRatio;
   lienzo.height = innerHeight * devicePixelRatio;
@@ -354,126 +367,410 @@ function ajustarTamanio() {
 addEventListener("resize", ajustarTamanio);
 ajustarTamanio();
 
-const ESTILO_OBSTACULO = {
-  banco:   { relleno: "#8d5a3b", borde: "#5e3a24" },
-  fuente:  { relleno: "#7fb7d6", borde: "#3d6f8c" },
-  cantero: { relleno: "#6a994e", borde: "#386641" },
-  tobogan: { relleno: "#e76f51", borde: "#9c3d24" },
-  hamacas: { relleno: "#f4a261", borde: "#a8662b" }
-};
-const NOMBRE_OBSTACULO = { banco: "banco", fuente: "fuente", cantero: "cantero", tobogan: "tobogán", hamacas: "hamacas" };
+// Números "al azar" pero siempre iguales (así los arbustos no cambian de forma)
+function azarFijo(semilla) {
+  let s = semilla;
+  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+function prepararDetalles() {
+  escondites.forEach((e, i) => {
+    const azar = azarFijo(i * 977 + 13);
+    if (e.tipo === "arbustos") {
+      const bolas = [];
+      for (let k = 0; k < 14; k++) {
+        const a = azar() * Math.PI * 2, d = Math.sqrt(azar()) * e.r * 0.7;
+        bolas.push({ x: e.x + Math.cos(a) * d, y: e.y + Math.sin(a) * d, r: e.r * (0.3 + azar() * 0.22), tono: azar() });
+      }
+      const flores = [];
+      for (let k = 0; k < 6; k++) {
+        const a = azar() * Math.PI * 2, d = azar() * e.r * 0.8;
+        flores.push({ x: e.x + Math.cos(a) * d, y: e.y + Math.sin(a) * d });
+      }
+      detalles[e.id] = { bolas, flores };
+    } else if (e.tipo === "pasto") {
+      const matas = [];
+      for (let k = 0; k < 180; k++) matas.push({ x: e.x + azar() * e.w, y: e.y + azar() * e.h, alto: 14 + azar() * 16, inclina: (azar() - 0.5) * 10 });
+      detalles[e.id] = { matas };
+    }
+  });
+}
 
+function rectRedondo(x, y, w, h, r) { pincel.beginPath(); pincel.roundRect(x, y, w, h, r); }
+function circulo(x, y, r) { pincel.beginPath(); pincel.arc(x, y, r, 0, Math.PI * 2); }
+function sombra(f, dx = 8, dy = 10) {
+  pincel.fillStyle = "rgba(0,0,0,.16)";
+  if (f.forma === "circulo") { circulo(f.x + dx, f.y + dy, f.r); pincel.fill(); }
+  else { rectRedondo(f.x + dx, f.y + dy, f.w, f.h, 8); pincel.fill(); }
+}
+
+// --- El piso: baldosas, pasto, cancha y arenero ---
+function dibujarPiso(t) {
+  pincel.fillStyle = "#e6d3ad"; pincel.fillRect(0, 0, mapa.ancho, mapa.alto);
+  pincel.strokeStyle = "rgba(120, 90, 50, 0.14)"; pincel.lineWidth = 2;
+  for (let x = 0; x <= mapa.ancho; x += 60) { pincel.beginPath(); pincel.moveTo(x, 0); pincel.lineTo(x, mapa.alto); pincel.stroke(); }
+  for (let y = 0; y <= mapa.alto; y += 60) { pincel.beginPath(); pincel.moveTo(0, y); pincel.lineTo(mapa.ancho, y); pincel.stroke(); }
+
+  // Canteros de pasto
+  pincel.fillStyle = "#9cc56b";
+  rectRedondo(60, 580, 620, 380, 40); pincel.fill();
+  rectRedondo(60, 1060, 900, 500, 40); pincel.fill();
+  rectRedondo(1880, 700, 680, 520, 40); pincel.fill();
+  rectRedondo(1720, 1320, 860, 250, 40); pincel.fill();
+
+  // Cancha de fútbol con sus líneas
+  pincel.fillStyle = "#5fa052"; rectRedondo(1720, 80, 820, 560, 12); pincel.fill();
+  pincel.fillStyle = "rgba(255,255,255,.07)";
+  for (let x = 1720; x < 2540; x += 82) pincel.fillRect(x, 80, 41, 560);
+  pincel.strokeStyle = "rgba(255,255,255,.85)"; pincel.lineWidth = 5;
+  pincel.strokeRect(1760, 110, 740, 500);
+  pincel.beginPath(); pincel.moveTo(2130, 110); pincel.lineTo(2130, 610); pincel.stroke();
+  circulo(2130, 360, 70); pincel.stroke();
+  pincel.strokeRect(1760, 250, 110, 220); pincel.strokeRect(2390, 250, 110, 220);
+
+  // Arenero donde están los juegos
+  pincel.fillStyle = "#f0d896"; rectRedondo(920, 1000, 720, 560, 50); pincel.fill();
+  pincel.fillStyle = "rgba(160,120,50,.18)";
+  const azar = azarFijo(7);
+  for (let k = 0; k < 160; k++) { circulo(930 + azar() * 700, 1010 + azar() * 540, 2 + azar() * 2); pincel.fill(); }
+
+  // Rayuela pintada en el patio
+  pincel.strokeStyle = "rgba(255,255,255,.75)"; pincel.lineWidth = 4;
+  // Casilleros: 1, 2, 3-4 (dobles), 5, 6-7 (dobles), 8 y el cielo
+  [[220, 1010], [280, 1010], [340, 982], [340, 1038], [400, 1010], [460, 982], [460, 1038], [520, 1010]]
+    .forEach(([x, y]) => pincel.strokeRect(x - 28, y - 28, 56, 56));
+  pincel.beginPath(); pincel.arc(548, 1010, 40, -Math.PI / 2, Math.PI / 2); pincel.stroke();
+
+  // Mástil con la bandera frente a la escuela
+  pincel.fillStyle = "#777"; circulo(740, 420, 7); pincel.fill();
+  const flameo = Math.sin(t * 3) * 6;
+  pincel.fillStyle = "#74acdf"; pincel.fillRect(746, 380 + flameo * 0.2, 60, 12);
+  pincel.fillStyle = "#ffffff"; pincel.fillRect(746, 392 + flameo * 0.2, 60, 12);
+  pincel.fillStyle = "#74acdf"; pincel.fillRect(746, 404 + flameo * 0.2, 60, 12);
+  pincel.fillStyle = "#f6b40e"; circulo(776, 398 + flameo * 0.2, 4); pincel.fill();
+
+  // Pared exterior del patio
+  pincel.strokeStyle = "#6b4a33"; pincel.lineWidth = 14;
+  pincel.strokeRect(-7, -7, mapa.ancho + 14, mapa.alto + 14);
+}
+
+// --- Obstáculos ---
+const DIBUJOS = {
+  escuela(o) {
+    sombra(o, 14, 16);
+    // Paredes
+    pincel.fillStyle = "#f1e3c8"; rectRedondo(o.x, o.y, o.w, o.h, 6); pincel.fill();
+    // Techo de tejas visto desde arriba (dos aguas)
+    pincel.fillStyle = "#b5523b"; pincel.fillRect(o.x + 10, o.y + 10, o.w - 20, o.h - 70);
+    pincel.strokeStyle = "rgba(0,0,0,.18)"; pincel.lineWidth = 2;
+    for (let y = o.y + 22; y < o.y + o.h - 60; y += 14) { pincel.beginPath(); pincel.moveTo(o.x + 10, y); pincel.lineTo(o.x + o.w - 10, y); pincel.stroke(); }
+    pincel.strokeStyle = "#7d3426"; pincel.lineWidth = 6;
+    pincel.beginPath(); pincel.moveTo(o.x + 10, o.y + (o.h - 60) / 2 + 5); pincel.lineTo(o.x + o.w - 10, o.y + (o.h - 60) / 2 + 5); pincel.stroke();
+    // Chimenea
+    pincel.fillStyle = "#8a4b3a"; pincel.fillRect(o.x + o.w - 120, o.y + 30, 36, 36);
+    // Galería con ventanas y la puerta
+    pincel.fillStyle = "#d9c7a5"; pincel.fillRect(o.x, o.y + o.h - 60, o.w, 60);
+    pincel.fillStyle = "#6fa8c9";
+    for (let x = o.x + 30; x < o.x + o.w - 40; x += 90) pincel.fillRect(x, o.y + o.h - 46, 46, 30);
+    pincel.fillStyle = "#6b4a33"; pincel.fillRect(o.x + o.w / 2 - 30, o.y + o.h - 52, 60, 52);
+    pincel.fillStyle = "#f6b40e"; circulo(o.x + o.w / 2 + 18, o.y + o.h - 26, 4); pincel.fill();
+  },
+  kiosco(o) {
+    sombra(o);
+    pincel.fillStyle = "#f7f1e3"; rectRedondo(o.x, o.y, o.w, o.h, 6); pincel.fill();
+    // Toldo a rayas
+    const franja = o.w / 8;
+    for (let k = 0; k < 8; k++) { pincel.fillStyle = k % 2 ? "#ffffff" : "#e63946"; pincel.fillRect(o.x + k * franja, o.y + o.h - 34, franja, 34); }
+    // Mostrador con golosinas
+    const golosinas = ["#ffb703", "#8ecae6", "#f28482", "#90be6d"];
+    golosinas.forEach((c, k) => { pincel.fillStyle = c; circulo(o.x + 30 + k * 36, o.y + 40, 10); pincel.fill(); });
+  },
+  pared(o) {
+    pincel.fillStyle = "#a35d3f"; pincel.fillRect(o.x, o.y, o.w, o.h);
+    pincel.strokeStyle = "rgba(255,240,220,.35)"; pincel.lineWidth = 2;
+    const horizontal = o.w > o.h;
+    const largo = horizontal ? o.w : o.h;
+    for (let k = 0; k < largo; k += 36) {
+      pincel.beginPath();
+      if (horizontal) { pincel.moveTo(o.x + k, o.y); pincel.lineTo(o.x + k, o.y + o.h); }
+      else { pincel.moveTo(o.x, o.y + k); pincel.lineTo(o.x + o.w, o.y + k); }
+      pincel.stroke();
+    }
+    pincel.strokeStyle = "#6b3a27"; pincel.lineWidth = 3; pincel.strokeRect(o.x, o.y, o.w, o.h);
+  },
+  fuente(o, t) {
+    sombra(o, 6, 8);
+    pincel.fillStyle = "#b9b1a3"; circulo(o.x, o.y, o.r); pincel.fill();
+    pincel.fillStyle = "#4f9fd1"; circulo(o.x, o.y, o.r - 16); pincel.fill();
+    // Ondas en el agua que se mueven
+    pincel.strokeStyle = "rgba(255,255,255,.45)"; pincel.lineWidth = 3;
+    for (let k = 0; k < 3; k++) { const rr = ((t * 30 + k * 30) % 90) + 10; pincel.globalAlpha = 1 - rr / 100; circulo(o.x, o.y, rr); pincel.stroke(); }
+    pincel.globalAlpha = 1;
+    pincel.fillStyle = "#b9b1a3"; circulo(o.x, o.y, 16); pincel.fill();
+    pincel.fillStyle = "#d8f0ff"; circulo(o.x, o.y, 7); pincel.fill();
+  },
+  banco(o) {
+    sombra(o, 4, 6);
+    pincel.fillStyle = "#3d3d3d";
+    const horizontal = o.w > o.h;
+    pincel.fillRect(o.x + (horizontal ? 8 : -4), o.y + (horizontal ? -4 : 8), horizontal ? 8 : o.w + 8, horizontal ? o.h + 8 : 8);
+    pincel.fillRect(o.x + (horizontal ? o.w - 16 : -4), o.y + (horizontal ? -4 : o.h - 16), horizontal ? 8 : o.w + 8, horizontal ? o.h + 8 : 8);
+    for (let k = 0; k < 3; k++) {
+      pincel.fillStyle = k % 2 ? "#a86c42" : "#8d5a3b";
+      if (horizontal) pincel.fillRect(o.x, o.y + k * (o.h / 3), o.w, o.h / 3 - 2);
+      else pincel.fillRect(o.x + k * (o.w / 3), o.y, o.w / 3 - 2, o.h);
+    }
+  },
+  tobogan(o) {
+    sombra(o);
+    // Escalera arriba
+    pincel.fillStyle = "#7a7f87"; pincel.fillRect(o.x + 6, o.y, 8, 70); pincel.fillRect(o.x + o.w - 14, o.y, 8, 70);
+    pincel.fillStyle = "#c0c5cc";
+    for (let y = o.y + 8; y < o.y + 70; y += 14) pincel.fillRect(o.x + 6, y, o.w - 12, 5);
+    // Plataforma
+    pincel.fillStyle = "#2a9d8f"; pincel.fillRect(o.x, o.y + 70, o.w, 30);
+    // Rampa con brillo
+    const brillo = pincel.createLinearGradient(o.x, 0, o.x + o.w, 0);
+    brillo.addColorStop(0, "#e76f51"); brillo.addColorStop(0.5, "#ffad8a"); brillo.addColorStop(1, "#e76f51");
+    pincel.fillStyle = brillo; rectRedondo(o.x + 8, o.y + 100, o.w - 16, o.h - 100, [0, 0, 20, 20]); pincel.fill();
+    pincel.fillStyle = "#9c3d24"; pincel.fillRect(o.x + 4, o.y + 100, 6, o.h - 110); pincel.fillRect(o.x + o.w - 10, o.y + 100, 6, o.h - 110);
+  },
+  hamacas(o, t) {
+    // Barra de arriba y patas
+    pincel.fillStyle = "#3a6ea5"; pincel.fillRect(o.x, o.y + 10, o.w, 10);
+    pincel.fillStyle = "#29507a"; pincel.fillRect(o.x - 6, o.y, 16, 30); pincel.fillRect(o.x + o.w - 10, o.y, 16, 30);
+    // Asientos que se hamacan (decoración: no chocan)
+    [o.x + 60, o.x + o.w - 60].forEach((x, k) => {
+      const vaiven = Math.sin(t * 2 + k * 1.7) * 18;
+      pincel.strokeStyle = "#555"; pincel.lineWidth = 2;
+      pincel.beginPath(); pincel.moveTo(x - 14, o.y + 18); pincel.lineTo(x - 14, o.y + 60 + vaiven); pincel.moveTo(x + 14, o.y + 18); pincel.lineTo(x + 14, o.y + 60 + vaiven); pincel.stroke();
+      pincel.fillStyle = k ? "#f4a261" : "#e9c46a"; rectRedondo(x - 20, o.y + 56 + vaiven, 40, 12, 4); pincel.fill();
+    });
+  },
+  calesita(o, t) {
+    sombra(o, 6, 8);
+    const colores = ["#e63946", "#ffb703", "#2a9d8f", "#8ecae6", "#f28482", "#90be6d"];
+    const giro = t * 0.6;
+    colores.forEach((c, k) => {
+      pincel.fillStyle = c; pincel.beginPath(); pincel.moveTo(o.x, o.y);
+      pincel.arc(o.x, o.y, o.r, giro + k * Math.PI / 3, giro + (k + 1) * Math.PI / 3); pincel.closePath(); pincel.fill();
+    });
+    pincel.strokeStyle = "#6b4a33"; pincel.lineWidth = 5; circulo(o.x, o.y, o.r); pincel.stroke();
+    // Caballitos
+    for (let k = 0; k < 6; k++) {
+      const a = giro + k * Math.PI / 3 + Math.PI / 6;
+      pincel.fillStyle = "#fff8ec"; circulo(o.x + Math.cos(a) * o.r * 0.62, o.y + Math.sin(a) * o.r * 0.62, 9); pincel.fill();
+    }
+    pincel.fillStyle = "#6b4a33"; circulo(o.x, o.y, 12); pincel.fill();
+  },
+  pingpong(o) {
+    sombra(o);
+    pincel.fillStyle = "#1d5c96"; rectRedondo(o.x, o.y, o.w, o.h, 4); pincel.fill();
+    pincel.strokeStyle = "#ffffff"; pincel.lineWidth = 3; pincel.strokeRect(o.x + 4, o.y + 4, o.w - 8, o.h - 8);
+    pincel.beginPath(); pincel.moveTo(o.x + 4, o.y + o.h / 2); pincel.lineTo(o.x + o.w - 4, o.y + o.h / 2); pincel.stroke();
+    pincel.fillStyle = "#222"; pincel.fillRect(o.x + o.w / 2 - 3, o.y - 6, 6, o.h + 12);
+    pincel.fillStyle = "#ffffff"; circulo(o.x + 50, o.y + 30, 5); pincel.fill();
+  },
+  arco(o) {
+    pincel.fillStyle = "rgba(255,255,255,.35)";
+    const haciaAfuera = o.x < 2000 ? -30 : 30;
+    pincel.fillRect(Math.min(o.x, o.x + haciaAfuera), o.y, Math.abs(haciaAfuera) + o.w, o.h);
+    pincel.strokeStyle = "rgba(255,255,255,.5)"; pincel.lineWidth = 1;
+    for (let y = o.y; y < o.y + o.h; y += 10) { pincel.beginPath(); pincel.moveTo(Math.min(o.x, o.x + haciaAfuera), y); pincel.lineTo(Math.max(o.x + o.w, o.x + haciaAfuera), y); pincel.stroke(); }
+    pincel.fillStyle = "#ffffff"; pincel.fillRect(o.x, o.y, o.w, 8); pincel.fillRect(o.x, o.y + o.h - 8, o.w, 8);
+    pincel.fillRect(o.x + (haciaAfuera < 0 ? o.w - 8 : 0), o.y, 8, o.h);
+  },
+  arbol(o) {
+    // Solo el tronco: la copa se dibuja después, arriba de los jugadores
+    pincel.fillStyle = "rgba(0,0,0,.18)"; circulo(o.x + 30, o.y + 34, 95); pincel.fill();
+    pincel.fillStyle = "#6b4a33"; circulo(o.x, o.y, o.r); pincel.fill();
+    pincel.strokeStyle = "#4a3222"; pincel.lineWidth = 3; circulo(o.x, o.y, o.r - 8); pincel.stroke();
+  }
+};
+
+// Copas de los árboles: semitransparentes, arriba de todo (no esconden, dan profundidad)
+function dibujarCopas(t) {
+  for (const o of obstaculos) {
+    if (o.tipo !== "arbol") continue;
+    const meneo = Math.sin(t + o.x) * 3;
+    pincel.globalAlpha = 0.72;
+    pincel.fillStyle = "#3f7d3a"; circulo(o.x + meneo, o.y, 92); pincel.fill();
+    pincel.fillStyle = "#57a04e"; circulo(o.x - 22 + meneo, o.y - 18, 58); pincel.fill();
+    pincel.fillStyle = "#6dbb5f"; circulo(o.x + 26 + meneo, o.y + 14, 40); pincel.fill();
+    pincel.globalAlpha = 1;
+  }
+}
+
+// --- Escondites: se dibujan ARRIBA de los jugadores para taparlos ---
+function dibujarEscondite(e, transparencia, t) {
+  pincel.save();
+  pincel.globalAlpha = transparencia;
+  if (e.tipo === "arbustos") {
+    const d = detalles[e.id];
+    pincel.fillStyle = "#2f6b2f"; circulo(e.x, e.y, e.r * 0.92); pincel.fill();
+    for (const b of d.bolas) {
+      pincel.fillStyle = b.tono < 0.33 ? "#3c8a3a" : b.tono < 0.66 ? "#4c9e45" : "#5cb150";
+      circulo(b.x, b.y, b.r); pincel.fill();
+      pincel.fillStyle = "rgba(255,255,255,.08)"; circulo(b.x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.45); pincel.fill();
+    }
+    for (const f of d.flores) { pincel.fillStyle = "#ffe066"; circulo(f.x, f.y, 4); pincel.fill(); }
+  } else if (e.tipo === "casita") {
+    // Techo a dos aguas visto desde arriba
+    pincel.fillStyle = "#d1495b"; pincel.fillRect(e.x - 10, e.y - 10, e.w / 2 + 10, e.h + 20);
+    pincel.fillStyle = "#b83b4c"; pincel.fillRect(e.x + e.w / 2, e.y - 10, e.w / 2 + 10, e.h + 20);
+    pincel.strokeStyle = "rgba(0,0,0,.18)"; pincel.lineWidth = 2;
+    for (let y = e.y; y < e.y + e.h; y += 16) { pincel.beginPath(); pincel.moveTo(e.x - 10, y); pincel.lineTo(e.x + e.w + 10, y); pincel.stroke(); }
+    pincel.fillStyle = "#7d2a36"; pincel.fillRect(e.x + e.w / 2 - 3, e.y - 10, 6, e.h + 20);
+    // Puerta (abajo) y ventanita
+    pincel.fillStyle = "#f7e1b5"; pincel.fillRect(e.x + e.w / 2 - 22, e.y + e.h + 4, 44, 10);
+  } else if (e.tipo === "tunel") {
+    const colores = ["#e63946", "#ffb703", "#2a9d8f", "#3a86ff"];
+    const anillo = e.w / 8;
+    for (let k = 0; k < 8; k++) {
+      pincel.fillStyle = colores[k % 4];
+      rectRedondo(e.x + k * anillo, e.y, anillo + 1, e.h, k === 0 ? [20, 0, 0, 20] : k === 7 ? [0, 20, 20, 0] : 0); pincel.fill();
+    }
+    pincel.fillStyle = "rgba(255,255,255,.22)"; pincel.fillRect(e.x, e.y + 8, e.w, 10);
+    pincel.fillStyle = "rgba(0,0,0,.45)"; circulo(e.x + 6, e.y + e.h / 2, e.h / 2 - 10); pincel.fill(); circulo(e.x + e.w - 6, e.y + e.h / 2, e.h / 2 - 10); pincel.fill();
+  } else if (e.tipo === "pasto") {
+    pincel.fillStyle = "#6f9b3e"; rectRedondo(e.x, e.y, e.w, e.h, 30); pincel.fill();
+    pincel.strokeStyle = "#a7cf5d"; pincel.lineWidth = 3; pincel.lineCap = "round";
+    const viento = Math.sin(t * 1.5) * 4;
+    for (const m of detalles[e.id].matas) {
+      pincel.beginPath(); pincel.moveTo(m.x, m.y); pincel.lineTo(m.x + m.inclina + viento, m.y - m.alto); pincel.stroke();
+    }
+  }
+  pincel.restore();
+}
+
+// Contorno de una forma (para resaltar escondites)
+function contorno(e, separacion) {
+  if (e.forma === "circulo") circulo(e.x, e.y, e.r + separacion);
+  else rectRedondo(e.x - separacion, e.y - separacion, e.w + separacion * 2, e.h + separacion * 2, 20);
+}
+function distanciaAForma(x, y, f) {
+  if (f.forma === "circulo") return Math.max(0, Math.hypot(x - f.x, y - f.y) - f.r);
+  return Math.hypot(x - Math.max(f.x, Math.min(x, f.x + f.w)), y - Math.max(f.y, Math.min(y, f.y + f.h)));
+}
+
+// --- Un jugador ---
+function dibujarJugador(j, d, t) {
+  const esMancha = j.id === estado.manchaId;
+  pincel.globalAlpha = j.inmune ? 0.5 : 1;
+  if (esMancha) {
+    pincel.strokeStyle = "#e63946"; pincel.lineWidth = 5;
+    circulo(d.x, d.y, radio + 8 + Math.sin(t * 8) * 3); pincel.stroke();
+  }
+  pincel.fillStyle = j.color;
+  pincel.strokeStyle = j.id === miId ? "#ffffff" : "#2b2118";
+  pincel.lineWidth = j.id === miId ? 5 : 3;
+  circulo(d.x, d.y, radio); pincel.fill(); pincel.stroke();
+  // Ojitos que miran hacia donde se mueve
+  const mx = (j.dx || 0) * 3, my = (j.dy || 0) * 3;
+  pincel.fillStyle = "#2b2118";
+  pincel.beginPath(); pincel.arc(d.x - 7 + mx, d.y - 4 + my, 3.5, 0, Math.PI * 2); pincel.arc(d.x + 7 + mx, d.y - 4 + my, 3.5, 0, Math.PI * 2); pincel.fill();
+  pincel.globalAlpha = 1;
+}
+function dibujarNombre(j, d) {
+  const esMancha = j.id === estado.manchaId;
+  pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
+  pincel.textAlign = "center"; pincel.textBaseline = "bottom";
+  const etiqueta = (esMancha ? "🔥 " : "") + j.nombre;
+  pincel.lineWidth = 4; pincel.strokeStyle = "rgba(255,255,255,.9)";
+  pincel.strokeText(etiqueta, d.x, d.y - radio - 10);
+  pincel.fillStyle = esMancha ? "#c1121f" : "#2b2118";
+  pincel.fillText(etiqueta, d.x, d.y - radio - 10);
+}
+
+// ----------------------------------------------------------
+// 7. EL LOOP DE DIBUJO (unas 60 veces por segundo)
+// El orden importa: lo que se dibuja después queda ARRIBA.
+// piso → obstáculos → jugadores → escondites → copas → oscuridad → ondas
+// ----------------------------------------------------------
 function dibujar() {
   requestAnimationFrame(dibujar);
   const ancho = innerWidth, alto = innerHeight;
   pincel.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-  pincel.fillStyle = "#3b2f25";
-  pincel.fillRect(0, 0, ancho, alto);
+  pincel.fillStyle = "#2f2a1f"; pincel.fillRect(0, 0, ancho, alto);
   if (!mapa) return;
+  const t = performance.now() / 1000;
+  const soyMancha = estado.manchaId === miId;
 
-  // Suavizado: en vez de "saltar" a la posición nueva, nos acercamos de a poco.
-  // Así el movimiento se ve fluido aunque lleguen solo 30 fotos por segundo.
+  // Suavizado del movimiento
   for (const j of estado.jugadores) {
     const d = dibujados[j.id] || (dibujados[j.id] = { x: j.x, y: j.y });
-    d.x += (j.x - d.x) * 0.3;
-    d.y += (j.y - d.y) * 0.3;
+    d.x += (j.x - d.x) * 0.3; d.y += (j.y - d.y) * 0.3;
   }
 
-  // Cámara: seguimos a nuestro jugador para que siempre esté en el centro
+  // Cámara: seguimos a nuestro jugador
   const yo = dibujados[miId] || { x: mapa.ancho / 2, y: mapa.alto / 2 };
+  const yoDatos = estado.jugadores.find(j => j.id === miId);
   const camX = ancho / 2 - yo.x, camY = alto / 2 - yo.y;
   pincel.save();
   pincel.translate(camX, camY);
 
-  // Piso de baldosas
-  pincel.fillStyle = "#e9d8b4";
-  pincel.fillRect(0, 0, mapa.ancho, mapa.alto);
-  pincel.strokeStyle = "rgba(120, 90, 50, 0.18)";
-  pincel.lineWidth = 2;
-  for (let x = 0; x <= mapa.ancho; x += 60) { pincel.beginPath(); pincel.moveTo(x, 0); pincel.lineTo(x, mapa.alto); pincel.stroke(); }
-  for (let y = 0; y <= mapa.alto; y += 60) { pincel.beginPath(); pincel.moveTo(0, y); pincel.lineTo(mapa.ancho, y); pincel.stroke(); }
+  dibujarPiso(t);
+  for (const o of obstaculos) (DIBUJOS[o.tipo] || DIBUJOS.pared)(o, t);
 
-  // Rayuela pintada en el piso (puro detalle)
-  pincel.strokeStyle = "rgba(255,255,255,.7)"; pincel.lineWidth = 4;
-  [[400, 560], [460, 560], [430, 620], [430, 680]].forEach(([x, y]) => pincel.strokeRect(x, y, 50, 50));
+  // Jugadores (los escondidos quedan abajo del follaje que se dibuja después)
+  for (const j of estado.jugadores) dibujarJugador(j, dibujados[j.id], t);
 
-  // Paredes del patio
-  pincel.strokeStyle = "#5e3a24"; pincel.lineWidth = 12;
-  pincel.strokeRect(-6, -6, mapa.ancho + 12, mapa.alto + 12);
-
-  // Obstáculos
-  for (const o of obstaculos) {
-    const e = ESTILO_OBSTACULO[o.tipo] || ESTILO_OBSTACULO.banco;
-    pincel.fillStyle = "rgba(0,0,0,.15)";
-    pincel.fillRect(o.x + 6, o.y + 8, o.w, o.h);  // sombrita
-    pincel.fillStyle = e.relleno; pincel.strokeStyle = e.borde; pincel.lineWidth = 4;
-    pincel.beginPath(); pincel.roundRect(o.x, o.y, o.w, o.h, 12); pincel.fill(); pincel.stroke();
-    pincel.fillStyle = "rgba(255,255,255,.85)";
-    pincel.font = "700 14px 'Atkinson Hyperlegible', sans-serif";
-    pincel.textAlign = "center"; pincel.textBaseline = "middle";
-    pincel.fillText(NOMBRE_OBSTACULO[o.tipo] || "", o.x + o.w / 2, o.y + o.h / 2);
-  }
-
-  // Jugadores
-  const tiempo = performance.now() / 1000;
-  for (const j of estado.jugadores) {
-    const d = dibujados[j.id];
-    const esMancha = j.id === estado.manchaId;
-    pincel.globalAlpha = j.inmune ? 0.5 : 1;
-
-    if (esMancha) {
-      // Aro rojo que late alrededor de la mancha
-      pincel.strokeStyle = "#e63946";
-      pincel.lineWidth = 5;
-      pincel.beginPath(); pincel.arc(d.x, d.y, radio + 8 + Math.sin(tiempo * 8) * 3, 0, Math.PI * 2); pincel.stroke();
+  // Escondites encima. Se ven transparentes si estoy adentro o si los están revisando
+  for (const e of escondites) {
+    const revisado = estado.revelados.includes(e.id);
+    const estoyAdentro = yoDatos && yoDatos.escondite === e.id;
+    dibujarEscondite(e, revisado ? 0.35 : estoyAdentro ? 0.5 : 1, t);
+    // Si soy la mancha y estoy cerca, resalto el escondite que puedo revisar
+    if (soyMancha && yoDatos && distanciaAForma(yoDatos.x, yoDatos.y, e) <= distanciaRevisar) {
+      pincel.setLineDash([10, 8]); pincel.lineDashOffset = -t * 30;
+      pincel.strokeStyle = estado.puedeRevisar ? "#9bd0ff" : "rgba(155,208,255,.4)"; pincel.lineWidth = 4;
+      contorno(e, 10); pincel.stroke(); pincel.setLineDash([]);
     }
-    pincel.fillStyle = j.color;
-    pincel.strokeStyle = j.id === miId ? "#ffffff" : "#2b2118";
-    pincel.lineWidth = j.id === miId ? 5 : 3;
-    pincel.beginPath(); pincel.arc(d.x, d.y, radio, 0, Math.PI * 2); pincel.fill(); pincel.stroke();
-
-    // Ojitos que miran hacia donde se mueve
-    pincel.fillStyle = "#2b2118";
-    pincel.beginPath(); pincel.arc(d.x - 7, d.y - 4, 3.5, 0, Math.PI * 2); pincel.arc(d.x + 7, d.y - 4, 3.5, 0, Math.PI * 2); pincel.fill();
-
-    // Nombre arriba
-    pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
-    pincel.textAlign = "center"; pincel.textBaseline = "bottom";
-    pincel.lineWidth = 4; pincel.strokeStyle = "rgba(255,255,255,.9)";
-    const etiqueta = esMancha ? "🔥 " + j.nombre : j.nombre;
-    pincel.strokeText(etiqueta, d.x, d.y - radio - 10);
-    pincel.fillStyle = esMancha ? "#c1121f" : "#2b2118";
-    pincel.fillText(etiqueta, d.x, d.y - radio - 10);
-    pincel.globalAlpha = 1;
   }
+
+  // Nombres: solo de los que se ven (los escondidos no muestran el nombre, salvo vos)
+  for (const j of estado.jugadores) {
+    const tapado = j.escondite && !estado.revelados.includes(j.escondite) && j.id !== miId;
+    if (!tapado) dibujarNombre(j, dibujados[j.id]);
+  }
+
+  dibujarCopas(t);
   pincel.restore();
 
   // OSCURIDAD: si soy la mancha, tapo todo menos un círculo alrededor mío
-  if (estado.manchaId === miId) {
+  if (soyMancha) {
     const r = estado.vision || 260;
-    const sombra = pincel.createRadialGradient(ancho / 2, alto / 2, r * 0.6, ancho / 2, alto / 2, r);
-    sombra.addColorStop(0, "rgba(10, 6, 3, 0)");
-    sombra.addColorStop(1, "rgba(10, 6, 3, 0.96)");
-    pincel.fillStyle = sombra;
-    pincel.fillRect(0, 0, ancho, alto);
+    const sombraVision = pincel.createRadialGradient(ancho / 2, alto / 2, r * 0.6, ancho / 2, alto / 2, r);
+    sombraVision.addColorStop(0, "rgba(10, 6, 3, 0)");
+    sombraVision.addColorStop(1, "rgba(10, 6, 3, 0.95)");
+    pincel.fillStyle = sombraVision; pincel.fillRect(0, 0, ancho, alto);
   }
 
-  // ONDAS DE SILBIDO: se dibujan arriba de la oscuridad, así la mancha las ve igual
-  const ahoraMs = performance.now();
+  // LINTERNAS: cuando la mancha revisa un escondite, se ve un destello (arriba de la oscuridad)
+  const ahora = performance.now();
+  for (let i = linternas.length - 1; i >= 0; i--) {
+    const l = linternas[i];
+    const edad = (ahora - l.inicio) / l.dura;
+    if (edad >= 1) { linternas.splice(i, 1); continue; }
+    const e = escondites.find(x => x.id === l.escondite);
+    if (!e) continue;
+    pincel.save(); pincel.translate(camX, camY);
+    pincel.globalAlpha = (1 - edad) * 0.8;
+    pincel.strokeStyle = "#fff3b0"; pincel.lineWidth = 6;
+    contorno(e, 6 + edad * 20); pincel.stroke();
+    pincel.fillStyle = "rgba(255, 243, 176, .15)"; contorno(e, 0); pincel.fill();
+    pincel.restore();
+  }
+
+  // ONDAS DE SILBIDO (también arriba de la oscuridad)
   for (let i = ondas.length - 1; i >= 0; i--) {
     const onda = ondas[i];
-    const edad = (ahoraMs - onda.inicio) / 1500;   // dura 1,5 segundos
+    const edad = (ahora - onda.inicio) / 1500;
     if (edad >= 1) { ondas.splice(i, 1); continue; }
     const sx = onda.x + camX, sy = onda.y + camY;
     pincel.globalAlpha = 1 - edad;
-    pincel.strokeStyle = "#ffd166";
-    pincel.lineWidth = 4;
-    for (let k = 0; k < 3; k++) {
-      const rr = 20 + ((edad * 120 + k * 40) % 120);
-      pincel.beginPath(); pincel.arc(sx, sy, rr, 0, Math.PI * 2); pincel.stroke();
-    }
-    pincel.fillStyle = "#ffd166";
-    pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
+    pincel.strokeStyle = "#ffd166"; pincel.lineWidth = 4;
+    for (let k = 0; k < 3; k++) { circulo(sx, sy, 20 + ((edad * 120 + k * 40) % 120)); pincel.stroke(); }
+    pincel.fillStyle = "#ffd166"; pincel.font = "700 15px 'Atkinson Hyperlegible', sans-serif";
     pincel.textAlign = "center"; pincel.textBaseline = "bottom";
     pincel.fillText("🎵 " + onda.nombre, sx, sy - 50);
     pincel.globalAlpha = 1;
@@ -482,28 +779,31 @@ function dibujar() {
   dibujarMinimapa(ancho, alto);
 }
 
-// Mapita en la esquina para ver dónde está cada uno
+// Mapita en la esquina
 function dibujarMinimapa(ancho, alto) {
-  const escala = Math.min(180, ancho * 0.3) / mapa.ancho;
+  const escala = Math.min(200, ancho * 0.32) / mapa.ancho;
   const w = mapa.ancho * escala, h = mapa.alto * escala;
   const x0 = ancho - w - 12, y0 = alto - h - 12;
-  pincel.fillStyle = "rgba(43,33,24,.75)";
-  pincel.beginPath(); pincel.roundRect(x0 - 4, y0 - 4, w + 8, h + 8, 8); pincel.fill();
-  pincel.fillStyle = "#e9d8b4"; pincel.fillRect(x0, y0, w, h);
-  pincel.fillStyle = "#a98b63";
-  for (const o of obstaculos) pincel.fillRect(x0 + o.x * escala, y0 + o.y * escala, o.w * escala, o.h * escala);
+  pincel.fillStyle = "rgba(43,33,24,.78)"; rectRedondo(x0 - 4, y0 - 4, w + 8, h + 8, 8); pincel.fill();
+  pincel.fillStyle = "#e6d3ad"; pincel.fillRect(x0, y0, w, h);
+  pincel.fillStyle = "#4c9e45";
+  for (const e of escondites) {
+    if (e.forma === "circulo") { pincel.beginPath(); pincel.arc(x0 + e.x * escala, y0 + e.y * escala, e.r * escala, 0, Math.PI * 2); pincel.fill(); }
+    else pincel.fillRect(x0 + e.x * escala, y0 + e.y * escala, e.w * escala, e.h * escala);
+  }
+  pincel.fillStyle = "#8a6a4a";
+  for (const o of obstaculos) {
+    if (o.forma === "circulo") { pincel.beginPath(); pincel.arc(x0 + o.x * escala, y0 + o.y * escala, Math.max(2, o.r * escala), 0, Math.PI * 2); pincel.fill(); }
+    else pincel.fillRect(x0 + o.x * escala, y0 + o.y * escala, Math.max(2, o.w * escala), Math.max(2, o.h * escala));
+  }
   for (const j of estado.jugadores) {
     const d = dibujados[j.id];
+    const tapado = j.escondite && !estado.revelados.includes(j.escondite) && j.id !== miId;
+    if (tapado) continue;
     pincel.fillStyle = j.id === estado.manchaId ? "#e63946" : j.id === miId ? "#ffffff" : j.color;
     pincel.beginPath(); pincel.arc(x0 + d.x * escala, y0 + d.y * escala, j.id === estado.manchaId ? 5 : 3.5, 0, Math.PI * 2); pincel.fill();
   }
 }
-
-// Borramos de la memoria a los jugadores que se fueron
-setInterval(() => {
-  const ids = new Set(estado.jugadores.map(j => j.id));
-  for (const id in dibujados) if (!ids.has(id)) delete dibujados[id];
-}, 2000);
 
 dibujar();
 </script>
