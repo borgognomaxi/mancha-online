@@ -44,4 +44,6 @@ En `server.js`, sección 1, están las reglas. Probá cambiar:
 - `VELOCIDAD`: qué tan rápido se mueven todos.
 - `VENTAJA_MANCHA`: cuánto más rápido va la mancha.
 - `CONGELADO_MS`: cuánto dura la pantalla negra.
-- `OBSTACULOS`: mové o agregá bancos, canteros y juegos del patio.
+- `OBSTACULOS`: mové o agregá cosas sólidas del patio (rectángulos o círculos).
+- `ESCONDITES`: mové o agregá lugares para esconderse.
+- `DISTANCIA_REVISAR`, `REVELADO_MS`, `ESPERA_REVISAR_MS`: cómo funciona la linterna de la mancha.
